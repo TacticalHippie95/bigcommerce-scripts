@@ -72,7 +72,7 @@
   
   var yearSelect = document.getElementById('birthYear');
   var currentYear = new Date().getFullYear();
-  for (var y = currentYear - 18; y >= currentYear - 100; y--) {
+  for (var y = currentYear; y >= currentYear - 100; y--) {
     var option = document.createElement('option');
     option.value = y;
     option.textContent = y;
@@ -87,15 +87,38 @@
     var month = document.getElementById('birthMonth').value;
     var day = document.getElementById('birthDay').value;
     var year = document.getElementById('birthYear').value;
-    
+
     if (!month || !day || !year) {
       showError('Please enter your complete date of birth.');
       return;
     }
-    
+
     var birthDate = year + '-' + month + '-' + day;
+    var birthDateObj = new Date(birthDate);
+
+    // Check if date is valid (handles cases like Feb 30, Apr 31, etc.)
+    if (isNaN(birthDateObj.getTime()) ||
+        birthDateObj.getFullYear() !== parseInt(year) ||
+        birthDateObj.getMonth() !== parseInt(month) - 1 ||
+        birthDateObj.getDate() !== parseInt(day)) {
+      showError('Please enter a valid date of birth.');
+      return;
+    }
+
+    // Check if date is in the future
+    if (birthDateObj > new Date()) {
+      showError('Date of birth cannot be in the future.');
+      return;
+    }
+
     var age = calculateAge(birthDate);
-    
+
+    // Check for NaN age (additional safety check)
+    if (isNaN(age)) {
+      showError('Please enter a valid date of birth.');
+      return;
+    }
+
     if (age >= config.minimumAge) {
       if (document.getElementById('rememberMe').checked) {
         setVerified();
